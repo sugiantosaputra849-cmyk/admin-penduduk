@@ -1,0 +1,6 @@
+{
+  "name": "SIPENDUK - Sistem Informasi Pendataan Penduduk Desa Waihatu",
+  "description": "Sistem Informasi Pendataan Penduduk Desa Waihatu untuk pengelolaan data penduduk, Kartu Keluarga, laporan, dan statistik.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
