@@ -2,17 +2,17 @@ import type {Metadata} from 'next';
 import './globals.css'; // Global styles
 
 export const metadata: Metadata = {
-  title: 'My Google AI Studio App',
-  description: 'An application built with Google AI Studio.',
+  title: 'SIPENDUK - Sistem Informasi Pendataan Penduduk Desa Waihatu',
+  description: 'Sistem Informasi Pendataan Penduduk Desa Waihatu untuk pengelolaan data penduduk, Kartu Keluarga, laporan, dan statistik.',
   openGraph: {
-    title: 'My Google AI Studio App',
-    description: 'An application built with Google AI Studio.',
+    title: 'SIPENDUK - Sistem Informasi Pendataan Penduduk Desa Waihatu',
+    description: 'Sistem Informasi Pendataan Penduduk Desa Waihatu untuk pengelolaan data penduduk, Kartu Keluarga, laporan, dan statistik.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'My Google AI Studio App',
-    description: 'An application built with Google AI Studio.',
+    title: 'SIPENDUK - Sistem Informasi Pendataan Penduduk Desa Waihatu',
+    description: 'Sistem Informasi Pendataan Penduduk Desa Waihatu untuk pengelolaan data penduduk, Kartu Keluarga, laporan, dan statistik.',
   },
 };
 
