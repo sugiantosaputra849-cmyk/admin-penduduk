@@ -28,7 +28,8 @@ import {
   BookOpen,
   Tractor,
   BadgeCheck,
-  Layers
+  Layers,
+  Share2
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -50,9 +51,10 @@ import { Resident, getAge, getKategoriUmur } from '@/types/resident';
 interface DashboardViewProps {
   onOpenAddModal: () => void;
   onViewResidentDetail: (resident: Resident) => void;
+  onOpenShareModal?: () => void;
 }
 
-export function DashboardView({ onOpenAddModal, onViewResidentDetail }: DashboardViewProps) {
+export function DashboardView({ onOpenAddModal, onViewResidentDetail, onOpenShareModal }: DashboardViewProps) {
   const { 
     stats, 
     residents, 
@@ -338,6 +340,16 @@ export function DashboardView({ onOpenAddModal, onViewResidentDetail }: Dashboar
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {onOpenShareModal && (
+              <button
+                onClick={onOpenShareModal}
+                className="bg-emerald-700 hover:bg-emerald-600 text-white font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow border border-emerald-500/50 transition flex items-center space-x-2"
+                id="dashboard-share-link-btn"
+              >
+                <Share2 className="w-4 h-4 text-emerald-200" />
+                <span>Salin Link App</span>
+              </button>
+            )}
             <button
               onClick={onOpenAddModal}
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center space-x-2"

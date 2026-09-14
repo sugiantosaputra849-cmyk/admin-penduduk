@@ -15,14 +15,16 @@ import {
   Building2, 
   Plus, 
   Database,
-  Printer
+  Printer,
+  Share2
 } from 'lucide-react';
 
 interface HeaderSidebarProps {
   onOpenAddModal: () => void;
+  onOpenShareModal: () => void;
 }
 
-export function HeaderSidebar({ onOpenAddModal }: HeaderSidebarProps) {
+export function HeaderSidebar({ onOpenAddModal, onOpenShareModal }: HeaderSidebarProps) {
   const { 
     activeTab, 
     setActiveTab, 
@@ -76,14 +78,25 @@ export function HeaderSidebar({ onOpenAddModal }: HeaderSidebarProps) {
           </div>
         </div>
 
-        <button
-          onClick={onOpenAddModal}
-          className="flex items-center space-x-1 text-xs bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold px-3 py-1.5 rounded-lg shadow transition"
-          id="mobile-add-resident-btn"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Tambah</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={onOpenShareModal}
+            className="flex items-center space-x-1 text-xs bg-emerald-700 hover:bg-emerald-600 text-emerald-100 font-medium px-2.5 py-1.5 rounded-lg border border-emerald-600 shadow-xs transition"
+            id="mobile-share-link-btn"
+            title="Bagikan / Salin Link Akses Web"
+          >
+            <Share2 className="w-3.5 h-3.5 text-emerald-300" />
+            <span className="hidden sm:inline">Salin Link</span>
+          </button>
+          <button
+            onClick={onOpenAddModal}
+            className="flex items-center space-x-1 text-xs bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold px-3 py-1.5 rounded-lg shadow transition"
+            id="mobile-add-resident-btn"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Tambah</span>
+          </button>
+        </div>
       </header>
 
       {/* Mobile Drawer Overlay */}
@@ -211,15 +224,29 @@ export function HeaderSidebar({ onOpenAddModal }: HeaderSidebarProps) {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/40 text-xs text-slate-400">
-          <div className="flex items-center space-x-2 mb-1">
-            <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="font-semibold text-slate-300">Kab. {villageProfile.kabupaten}</span>
-          </div>
-          <p className="text-[11px] text-slate-400">Kec. {villageProfile.kecamatan} • Kode Pos {villageProfile.kodePos}</p>
-          <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">
-            <span className="text-emerald-400 font-mono">v1.2 Active</span>
-            <span className="text-slate-400">Thn {villageProfile.tahunPendataan}</span>
+        <div className="p-4 border-t border-slate-800 bg-slate-950/40 text-xs text-slate-400 space-y-3">
+          <button
+            onClick={() => {
+              onOpenShareModal();
+              setMobileMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-center space-x-2 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 font-semibold py-2 px-3 rounded-xl border border-emerald-800/60 shadow-xs transition text-xs"
+            id="sidebar-share-link-btn"
+          >
+            <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Akses / Bagikan Link App</span>
+          </button>
+
+          <div>
+            <div className="flex items-center space-x-2 mb-1">
+              <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-semibold text-slate-300">Kab. {villageProfile.kabupaten}</span>
+            </div>
+            <p className="text-[11px] text-slate-400">Kec. {villageProfile.kecamatan} • Kode Pos {villageProfile.kodePos}</p>
+            <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">
+              <span className="text-emerald-400 font-mono">v1.2 Online</span>
+              <span className="text-slate-400">Thn {villageProfile.tahunPendataan}</span>
+            </div>
           </div>
         </div>
       </aside>

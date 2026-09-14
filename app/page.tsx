@@ -12,6 +12,7 @@ import { SettingsView } from '@/components/SettingsView';
 import { ResidentModal } from '@/components/ResidentModal';
 import { ResidentDetailModal } from '@/components/ResidentDetailModal';
 import { PrintModal, PrintMode } from '@/components/PrintModal';
+import { ShareLinkModal } from '@/components/ShareLinkModal';
 import { Resident, KartuKeluargaData } from '@/types/resident';
 
 function AppContent() {
@@ -19,6 +20,7 @@ function AppContent() {
 
   // Modal states
   const [isResidentModalOpen, setIsResidentModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
 
   // Pre-fill parameters for KK member addition
@@ -106,7 +108,10 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row font-sans text-slate-800 antialiased">
       {/* Sidebar & Navigation */}
-      <HeaderSidebar onOpenAddModal={handleOpenAddModal} />
+      <HeaderSidebar 
+        onOpenAddModal={handleOpenAddModal} 
+        onOpenShareModal={() => setIsShareModalOpen(true)} 
+      />
 
       {/* Main Content Viewport */}
       <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-x-hidden">
@@ -114,6 +119,7 @@ function AppContent() {
           <DashboardView
             onOpenAddModal={handleOpenAddModal}
             onViewResidentDetail={(r) => setDetailResident(r)}
+            onOpenShareModal={() => setIsShareModalOpen(true)}
           />
         )}
 
@@ -143,7 +149,9 @@ function AppContent() {
 
         {activeTab === 'import-export' && <ImportExportView />}
 
-        {activeTab === 'pengaturan' && <SettingsView />}
+        {activeTab === 'pengaturan' && (
+          <SettingsView onOpenShareModal={() => setIsShareModalOpen(true)} />
+        )}
       </main>
 
       {/* Shared Modals */}
@@ -175,6 +183,11 @@ function AppContent() {
         reportTitle={printReportTitle}
         reportList={printReportList}
         kkListReport={printKkListReport}
+      />
+
+      <ShareLinkModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
       />
     </div>
   );

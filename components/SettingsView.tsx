@@ -12,11 +12,19 @@ import {
   Image as ImageIcon, 
   Upload, 
   Trash2, 
-  RefreshCw 
+  RefreshCw,
+  Share2,
+  Globe,
+  Copy,
+  Check
 } from 'lucide-react';
 import { DEFAULT_LOGO_KABUPATEN_SVG, DEFAULT_LOGO_DESA_SVG } from '@/lib/seed-data';
 
-export function SettingsView() {
+interface SettingsViewProps {
+  onOpenShareModal?: () => void;
+}
+
+export function SettingsView({ onOpenShareModal }: SettingsViewProps) {
   const { villageProfile, updateVillageProfile, resetDatabase } = useResidents();
 
   const [formProfile, setFormProfile] = useState({ ...villageProfile });
@@ -359,6 +367,30 @@ export function SettingsView() {
 
         {/* Right Col: Admin Account & Database Operations */}
         <div className="space-y-6">
+          {/* Share / Public Access Link Card */}
+          <div className="bg-gradient-to-br from-emerald-900 to-teal-900 rounded-2xl p-5 text-white shadow-md border border-emerald-700/50 space-y-3">
+            <div className="flex items-center space-x-2 border-b border-emerald-700/60 pb-3">
+              <Globe className="w-5 h-5 text-emerald-300" />
+              <div>
+                <h3 className="font-extrabold text-white text-sm">Akses Link Web Online</h3>
+                <p className="text-[10px] text-emerald-200">Buka aplikasi di mana saja (HP, PC, Tablet)</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-emerald-100/90 leading-relaxed">
+              Dapatkan link web resmi SIPENDUK Desa Waihatu atau tampilkan QR Code untuk pemindaian instan di Smartphone/HP.
+            </p>
+
+            <button
+              onClick={onOpenShareModal}
+              className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow"
+              id="settings-share-link-btn"
+            >
+              <Share2 className="w-4 h-4 text-slate-950" />
+              <span>Buka QR Code & Salin Link</span>
+            </button>
+          </div>
+
           {/* Admin Credentials */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-4">
             <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
