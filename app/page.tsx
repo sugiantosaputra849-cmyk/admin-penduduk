@@ -13,10 +13,12 @@ import { ResidentModal } from '@/components/ResidentModal';
 import { ResidentDetailModal } from '@/components/ResidentDetailModal';
 import { PrintModal, PrintMode } from '@/components/PrintModal';
 import { ShareLinkModal } from '@/components/ShareLinkModal';
+import { AdminLoginModal } from '@/components/AdminLoginModal';
+import { AppLockGate } from '@/components/AppLockGate';
 import { Resident, KartuKeluargaData } from '@/types/resident';
 
 function AppContent() {
-  const { activeTab } = useResidents();
+  const { activeTab, requireAdmin } = useResidents();
 
   // Modal states
   const [isResidentModalOpen, setIsResidentModalOpen] = useState(false);
@@ -52,20 +54,24 @@ function AppContent() {
 
   // Action Handlers
   const handleOpenAddModal = () => {
-    setEditingResident(null);
-    setKkModalDefaults({
-      noKk: '',
-      dusun: 'Dusun Waihatu',
-      alamat: 'Jl. Trans Seram - Waihatu',
-      rt: '001',
-      rw: '001'
+    requireAdmin(() => {
+      setEditingResident(null);
+      setKkModalDefaults({
+        noKk: '',
+        dusun: 'Dusun Waihatu',
+        alamat: 'Jl. Trans Seram - Waihatu',
+        rt: '001',
+        rw: '001'
+      });
+      setIsResidentModalOpen(true);
     });
-    setIsResidentModalOpen(true);
   };
 
   const handleOpenEditModal = (resident: Resident) => {
-    setEditingResident(resident);
-    setIsResidentModalOpen(true);
+    requireAdmin(() => {
+      setEditingResident(resident);
+      setIsResidentModalOpen(true);
+    });
   };
 
   const handleOpenAddMemberForKk = (
@@ -75,9 +81,11 @@ function AppContent() {
     rt: string,
     rw: string
   ) => {
-    setEditingResident(null);
-    setKkModalDefaults({ noKk, dusun, alamat, rt, rw });
-    setIsResidentModalOpen(true);
+    requireAdmin(() => {
+      setEditingResident(null);
+      setKkModalDefaults({ noKk, dusun, alamat, rt, rw });
+      setIsResidentModalOpen(true);
+    });
   };
 
   const handlePrintSingleResident = (resident: Resident) => {
@@ -189,6 +197,9 @@ function AppContent() {
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
       />
+
+      <AdminLoginModal />
+      <AppLockGate />
     </div>
   );
 }

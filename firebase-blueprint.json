@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "residents": {
+      "title": "Data Kependudukan Desa",
+      "description": "Koleksi data kependudukan seluruh warga Desa Waihatu",
+      "properties": {
+        "nik": { "type": "string", "description": "Nomor Induk Kependudukan (16 digit)" },
+        "noKk": { "type": "string", "description": "Nomor Kartu Keluarga (16 digit)" },
+        "nama": { "type": "string", "description": "Nama Lengkap Penduduk" },
+        "tempatLahir": { "type": "string", "description": "Tempat Lahir" },
+        "tanggalLahir": { "type": "string", "description": "Tanggal Lahir (YYYY-MM-DD)" },
+        "jenisKelamin": { "type": "string", "description": "Laki-laki / Perempuan" },
+        "agama": { "type": "string", "description": "Agama" },
+        "statusPerkawinan": { "type": "string", "description": "Status Perkawinan" },
+        "kewarganegaraan": { "type": "string", "description": "Kewarganegaraan" },
+        "pendidikan": { "type": "string", "description": "Tingkat Pendidikan" },
+        "pekerjaan": { "type": "string", "description": "Pekerjaan" },
+        "hubunganKk": { "type": "string", "description": "Hubungan Dalam Keluarga" },
+        "alamat": { "type": "string", "description": "Alamat Tempat Tinggal" },
+        "dusun": { "type": "string", "description": "Nama Dusun" },
+        "rt": { "type": "string", "description": "Nomor RT" },
+        "rw": { "type": "string", "description": "Nomor RW" },
+        "statusPenduduk": { "type": "string", "description": "Status Keberadaan Penduduk" },
+        "noHp": { "type": "string", "description": "Nomor Telepon/HP" },
+        "createdAt": { "type": "string", "description": "Waktu Pembuatan Record" },
+        "updatedAt": { "type": "string", "description": "Waktu Update Terakhir" }
+      },
+      "required": ["nik", "nama", "jenisKelamin", "dusun"]
+    },
+    "village_profile": {
+      "title": "Profil Desa Waihatu",
+      "description": "Pengaturan profil, logo, dan pimpinan Desa Waihatu",
+      "properties": {
+        "namaDesa": { "type": "string" },
+        "kecamatan": { "type": "string" },
+        "kabupaten": { "type": "string" },
+        "provinsi": { "type": "string" },
+        "namaKepalaDesa": { "type": "string" },
+        "nipKepalaDesa": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "logoKabupatenUrl": { "type": "string" }
+      }
+    },
+    "admin_config": {
+      "title": "Konfigurasi Admin",
+      "description": "Username dan Password Admin untuk autentikasi sistem",
+      "properties": {
+        "username": { "type": "string" },
+        "password": { "type": "string" }
+      }
+    },
+    "backups": {
+      "title": "Cadangan Snapshot",
+      "description": "Koleksi snapshot cadangan database manual dan otomatis",
+      "properties": {
+        "label": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "count": { "type": "number" },
+        "type": { "type": "string" }
+      }
+    }
+  }
+}

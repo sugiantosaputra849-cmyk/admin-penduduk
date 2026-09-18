@@ -85,6 +85,30 @@ export interface VillageProfile {
   logoKabupatenUrl?: string;
 }
 
+export interface AutoBackupConfig {
+  enabled: boolean;
+  frequency: 'realtime' | 'daily' | 'weekly';
+  autoDownloadExcel: boolean;
+  cloudSyncEnabled: boolean;
+  lastBackupTime?: string;
+}
+
+export interface BackupSnapshot {
+  id: string;
+  timestamp: string;
+  label: string;
+  count: number;
+  sizeKb: number;
+  type: 'auto' | 'manual' | 'pre-import';
+  residentsData: Resident[];
+  profileData?: VillageProfile;
+}
+
+export interface AdminCredentials {
+  username: string;
+  password: string;
+}
+
 export function getAge(tanggalLahir: string): number {
   if (!tanggalLahir) return 0;
   const today = new Date();

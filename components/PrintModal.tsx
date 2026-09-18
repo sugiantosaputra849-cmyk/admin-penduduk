@@ -3,6 +3,7 @@
 import React from 'react';
 import { Resident, KartuKeluargaData, getAge, getKategoriUmur } from '@/types/resident';
 import { useResidents } from '@/context/ResidentContext';
+import { DEFAULT_LOGO_KABUPATEN_SVG, DEFAULT_LOGO_DESA_SVG } from '@/lib/seed-data';
 import { Printer, X, Download } from 'lucide-react';
 
 export type PrintMode = 'single-resident' | 'family-card' | 'report' | 'kk-report';
@@ -74,18 +75,15 @@ export function PrintModal({
           <div className="border-b-4 border-double border-slate-900 pb-3 mb-6 relative flex items-center justify-between gap-2">
             {/* Logo Kiri: Logo Kabupaten */}
             <div className="w-16 sm:w-20 h-20 flex items-center justify-center shrink-0">
-              {villageProfile.logoKabupatenUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={villageProfile.logoKabupatenUrl} 
-                  alt="Logo Kabupaten" 
-                  className="max-h-20 max-w-full object-contain"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-[9px] text-slate-400 font-semibold text-center p-1">
-                  Logo Kab
-                </div>
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={villageProfile.logoKabupatenUrl || DEFAULT_LOGO_KABUPATEN_SVG} 
+                alt="Logo Kabupaten" 
+                className="max-h-20 max-w-full object-contain"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = DEFAULT_LOGO_KABUPATEN_SVG;
+                }}
+              />
             </div>
 
             {/* Middle Kop Text */}
@@ -111,18 +109,15 @@ export function PrintModal({
 
             {/* Logo Kanan: Logo Desa */}
             <div className="w-16 sm:w-20 h-20 flex items-center justify-center shrink-0">
-              {villageProfile.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={villageProfile.logoUrl} 
-                  alt="Logo Desa" 
-                  className="max-h-20 max-w-full object-contain"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-[9px] text-slate-400 font-semibold text-center p-1">
-                  Logo Desa
-                </div>
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={villageProfile.logoUrl || DEFAULT_LOGO_DESA_SVG} 
+                alt="Logo Desa" 
+                className="max-h-20 max-w-full object-contain"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = DEFAULT_LOGO_DESA_SVG;
+                }}
+              />
             </div>
           </div>
 

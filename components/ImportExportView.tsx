@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useResidents } from '@/context/ResidentContext';
-import { Resident } from '@/types/resident';
+import { Resident, BackupSnapshot } from '@/types/resident';
+import { exportResidentsToExcel } from '@/lib/excel-helper';
 import { 
   ArrowUpDown, 
   FileSpreadsheet, 
@@ -13,12 +14,37 @@ import {
   CheckCircle, 
   AlertTriangle,
   FileText,
-  FileCheck
+  FileCheck,
+  ShieldCheck,
+  Clock,
+  HardDrive,
+  Cloud,
+  History,
+  RotateCcw,
+  Trash2,
+  Settings2,
+  Save,
+  Zap
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export function ImportExportView() {
-  const { residents, importResidents, resetDatabase, villageProfile } = useResidents();
+  const { 
+    residents, 
+    importResidents, 
+    resetDatabase, 
+    villageProfile,
+    autoBackupConfig,
+    updateAutoBackupConfig,
+    backupsList,
+    createManualBackup,
+    restoreBackup,
+    deleteBackup,
+    triggerExcelBackupNow,
+    exportCloudBackupJson,
+    importCloudBackupJson,
+    requireAdmin
+  } = useResidents();
 
   const [importStatus, setImportStatus] = useState<{
     type: 'success' | 'error' | 'info' | null;
@@ -26,6 +52,83 @@ export function ImportExportView() {
   }>({ type: null, message: '' });
 
   const [importMode, setImportMode] = useState<'append' | 'overwrite'>('append');
+
+  const [restoringId, setRestoringId] = useState<string | null>(null);
+
+  // Trigger Excel Download and Record Backup Snapshot
+  const handleExportAllToExcel = () => {
+    if (!residents || residents.length === 0) {
+      setImportStatus({
+        type: 'error',
+        message: 'Tidak ada data penduduk di dalam database untuk diekspor.'
+      });
+      return;
+    }
+
+    const success = triggerExcelBackupNow();
+    if (success) {
+      setImportStatus({
+        type: 'success',
+        message: `Berhasil mengunduh seluruh database (${residents.length} data penduduk) ke file Excel (.xlsx). Snapshot backup otomatis telah dicatat.`
+      });
+    }
+  };
+
+  // Trigger Manual Backup Snapshot
+  const handleCreateSnapshot = () => {
+    requireAdmin(() => {
+      const snap = createManualBackup();
+      setImportStatus({
+        type: 'success',
+        message: `Snapshot cadangan manual '${snap.label}' berhasil dibuat & disimpan aman!`
+      });
+    });
+  };
+
+  // Restore snapshot handler
+  const handleRestoreSnapshot = (snapshot: BackupSnapshot) => {
+    requireAdmin(() => {
+      if (window.confirm(`Apakah Anda yakin ingin memulihkan database ke versi '${snapshot.label}' (${snapshot.count} warga)? Data saat ini akan digantikan.`)) {
+        setRestoringId(snapshot.id);
+        setTimeout(() => {
+          const ok = restoreBackup(snapshot.id);
+          setRestoringId(null);
+          if (ok) {
+            setImportStatus({
+              type: 'success',
+              message: `Database berhasil dipulihkan ke versi '${snapshot.label}' (${snapshot.count} data warga).`
+            });
+          } else {
+            setImportStatus({
+              type: 'error',
+              message: 'Gagal memulihkan snapshot database. Data tidak ditemukan.'
+            });
+          }
+        }, 300);
+      }
+    });
+  };
+
+  // Download snapshot directly as Excel
+  const handleDownloadSnapshotExcel = (snapshot: BackupSnapshot) => {
+    if (!snapshot.residentsData || snapshot.residentsData.length === 0) {
+      setImportStatus({
+        type: 'error',
+        message: 'Snapshot ini tidak memiliki data warga untuk diekspor.'
+      });
+      return;
+    }
+    const safeDate = snapshot.timestamp.slice(0, 10);
+    exportResidentsToExcel(
+      snapshot.residentsData, 
+      villageProfile.namaDesa, 
+      `Backup_Snapshot_Desa_${villageProfile.namaDesa}_${safeDate}_${snapshot.id.slice(-4)}.xlsx`
+    );
+    setImportStatus({
+      type: 'success',
+      message: `Berkas Excel dari snapshot '${snapshot.label}' berhasil diunduh.`
+    });
+  };
 
   // Download Sample Template for Excel import
   const handleDownloadTemplate = () => {
@@ -212,73 +315,107 @@ export function ImportExportView() {
 
       {/* Grid Features */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Section 1: Excel Import */}
+        {/* Section 1: Excel Integration & Export/Import */}
         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-4">
           <div className="flex items-center space-x-3">
             <div className="p-3 bg-emerald-100 text-emerald-800 rounded-xl">
               <FileSpreadsheet className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-base">Import Data Excel (.xlsx)</h3>
-              <p className="text-xs text-slate-500">Unggah berkas Excel berisi daftar warga baru</p>
+              <h3 className="font-bold text-slate-900 text-base">Koneksi Database & Excel</h3>
+              <p className="text-xs text-slate-500">Ekspor atau impor data penduduk dengan Microsoft Excel (.xlsx)</p>
             </div>
           </div>
 
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center space-x-4 text-xs">
-              <span className="font-semibold text-slate-700">Mode Impor:</span>
-              <label className="flex items-center space-x-1 cursor-pointer">
-                <input
-                  type="radio"
-                  name="importMode"
-                  value="append"
-                  checked={importMode === 'append'}
-                  onChange={() => setImportMode('append')}
-                  className="text-emerald-600 focus:ring-emerald-500"
-                />
-                <span>Tambahkan Data (Append)</span>
-              </label>
-              <label className="flex items-center space-x-1 cursor-pointer">
-                <input
-                  type="radio"
-                  name="importMode"
-                  value="overwrite"
-                  checked={importMode === 'overwrite'}
-                  onChange={() => setImportMode('overwrite')}
-                  className="text-emerald-600 focus:ring-emerald-500"
-                />
-                <span>Ganti Semua Data (Overwrite)</span>
-              </label>
-            </div>
-
-            <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-emerald-500 transition bg-slate-50/50">
-              <Upload className="w-8 h-8 mx-auto text-emerald-600 mb-2" />
-              <p className="font-bold text-slate-700 text-xs">Klik untuk memilih file Excel atau seret file ke sini</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Mendukung format .xlsx dan .csv</p>
-              
-              <input
-                type="file"
-                accept=".xlsx, .xls, .csv"
-                onChange={handleExcelFileUpload}
-                className="hidden"
-                id="excel-file-input"
-              />
-              <label
-                htmlFor="excel-file-input"
-                className="mt-3 inline-block px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-xs cursor-pointer shadow transition"
+          <div className="space-y-4 pt-1">
+            {/* Export All Database to Excel */}
+            <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-emerald-950 text-xs flex items-center space-x-1.5">
+                  <Download className="w-4 h-4 text-emerald-700" />
+                  <span>Ekspor Seluruh Database Penduduk Ke Excel</span>
+                </span>
+                <span className="text-[10px] font-bold bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full">
+                  {residents.length} Data
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600">
+                Unduh seluruh isi database penduduk Desa Waihatu saat ini lengkap dengan NIK, No. KK, Tanggal Perkawinan, Kewarganegaraan, dan Nama Orang Tua ke berkas Excel (.xlsx).
+              </p>
+              <button
+                onClick={handleExportAllToExcel}
+                className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-2"
+                id="export-all-excel-btn"
               >
-                Pilih Berkas Excel
-              </label>
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>Unduh Seluruh Database Ke Excel (.xlsx)</span>
+              </button>
             </div>
 
-            <button
-              onClick={handleDownloadTemplate}
-              className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center justify-center space-x-1.5 border border-slate-200"
-              id="download-template-btn"
-            >
-              <FileCheck className="w-4 h-4 text-emerald-600" />
-              <span>Download Format Template Excel (.xlsx)</span>
-            </button>
+            {/* Import Excel */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+              <span className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                <Upload className="w-4 h-4 text-emerald-600" />
+                <span>Impor / Sinkronisasi Data Excel ke Database</span>
+              </span>
+
+              <div className="flex items-center space-x-4 text-xs">
+                <span className="font-semibold text-slate-700">Mode Impor:</span>
+                <label className="flex items-center space-x-1 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="importMode"
+                    value="append"
+                    checked={importMode === 'append'}
+                    onChange={() => setImportMode('append')}
+                    className="text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>Tambahkan (Append)</span>
+                </label>
+                <label className="flex items-center space-x-1 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="importMode"
+                    value="overwrite"
+                    checked={importMode === 'overwrite'}
+                    onChange={() => setImportMode('overwrite')}
+                    className="text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>Ganti Semua (Overwrite)</span>
+                </label>
+              </div>
+
+              <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-emerald-500 transition bg-white">
+                <Upload className="w-6 h-6 mx-auto text-emerald-600 mb-1" />
+                <p className="font-bold text-slate-700 text-xs">Pilih berkas Excel untuk diimpor</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Format .xlsx atau .csv</p>
+                
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  onChange={handleExcelFileUpload}
+                  className="hidden"
+                  id="excel-file-input"
+                />
+                <button
+                  type="button"
+                  onClick={() => requireAdmin(() => document.getElementById('excel-file-input')?.click())}
+                  className="mt-2 inline-block px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs cursor-pointer shadow transition"
+                  id="select-excel-btn"
+                >
+                  Pilih Berkas Excel
+                </button>
+              </div>
+
+              <button
+                onClick={handleDownloadTemplate}
+                className="w-full py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center justify-center space-x-1.5 border border-slate-300"
+                id="download-template-btn"
+              >
+                <FileCheck className="w-4 h-4 text-emerald-600" />
+                <span>Download Template Standar Excel (.xlsx)</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -328,14 +465,90 @@ export function ImportExportView() {
                 className="hidden"
                 id="restore-json-input"
               />
-              <label
-                htmlFor="restore-json-input"
+              <button
+                type="button"
+                onClick={() => requireAdmin(() => document.getElementById('restore-json-input')?.click())}
                 className="w-full block text-center py-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs rounded-xl cursor-pointer transition"
+                id="select-json-btn"
               >
                 Unggah File Restore (.json)
-              </label>
+              </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Guide Card: Panduan Integrasi Database ↔ Excel */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-3">
+        <h3 className="font-bold text-slate-900 text-sm flex items-center space-x-2">
+          <FileText className="w-4 h-4 text-emerald-600" />
+          <span>Panduan Format & Pemetaaan Kolom Excel Ke Database</span>
+        </h3>
+        <p className="text-xs text-slate-600 leading-relaxed">
+          Sistem SIPENDUK mendukung impor & ekspor data secara otomatis. Saat mengimpor berkas Excel (.xlsx / .csv), pastikan baris pertama (header) menggunakan nama kolom berikut:
+        </p>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-[11px] border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                <th className="p-2">Nama Kolom Excel</th>
+                <th className="p-2">Atribut Database</th>
+                <th className="p-2">Format / Nilai Valid</th>
+                <th className="p-2">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tr>
+                <td className="p-2 font-mono font-bold text-emerald-800">NIK</td>
+                <td className="p-2 font-mono">nik</td>
+                <td className="p-2">16 Digit Angka</td>
+                <td className="p-2 text-slate-500">Nomor Induk Kependudukan Wajib</td>
+              </tr>
+              <tr className="bg-slate-50/50">
+                <td className="p-2 font-mono font-bold text-emerald-800">No_KK</td>
+                <td className="p-2 font-mono">noKk</td>
+                <td className="p-2">16 Digit Angka</td>
+                <td className="p-2 text-slate-500">Nomor Kartu Keluarga Wajib</td>
+              </tr>
+              <tr>
+                <td className="p-2 font-mono font-bold text-emerald-800">Nama_Lengkap</td>
+                <td className="p-2 font-mono">nama</td>
+                <td className="p-2">Teks (Nama Warga)</td>
+                <td className="p-2 text-slate-500">Nama lengkap sesuai KTP/KK</td>
+              </tr>
+              <tr className="bg-slate-50/50">
+                <td className="p-2 font-mono font-bold text-emerald-800">Tanggal_Lahir</td>
+                <td className="p-2 font-mono">tanggalLahir</td>
+                <td className="p-2">YYYY-MM-DD</td>
+                <td className="p-2 text-slate-500">Format tanggal ISO (misal: 1990-05-15)</td>
+              </tr>
+              <tr>
+                <td className="p-2 font-mono font-bold text-emerald-800">Jenis_Kelamin</td>
+                <td className="p-2 font-mono">jenisKelamin</td>
+                <td className="p-2">Laki-laki / Perempuan</td>
+                <td className="p-2 text-slate-500">Pilihan jenis kelamin</td>
+              </tr>
+              <tr className="bg-slate-50/50">
+                <td className="p-2 font-mono font-bold text-emerald-800">Kewarganegaraan</td>
+                <td className="p-2 font-mono">kewarganegaraan</td>
+                <td className="p-2">WNI / WNA</td>
+                <td className="p-2 text-slate-500">Status kewarganegaraan (default: WNI)</td>
+              </tr>
+              <tr>
+                <td className="p-2 font-mono font-bold text-emerald-800">Nama_Ayah / Nama_Ibu</td>
+                <td className="p-2 font-mono">namaAyah / namaIbu</td>
+                <td className="p-2">Teks Nama Orang Tua</td>
+                <td className="p-2 text-slate-500">Diisi nama lengkap Ayah/Ibu kandung</td>
+              </tr>
+              <tr className="bg-slate-50/50">
+                <td className="p-2 font-mono font-bold text-emerald-800">Hubungan_KK</td>
+                <td className="p-2 font-mono">hubunganKk</td>
+                <td className="p-2">Kepala Keluarga / Istri / Anak / dll</td>
+                <td className="p-2 text-slate-500">Kedudukan dalam Kartu Keluarga</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

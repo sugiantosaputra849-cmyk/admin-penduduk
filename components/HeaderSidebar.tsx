@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useResidents } from '@/context/ResidentContext';
+import { DEFAULT_LOGO_KABUPATEN_SVG, DEFAULT_LOGO_DESA_SVG } from '@/lib/seed-data';
 import { 
   LayoutDashboard, 
   Users, 
@@ -16,7 +17,11 @@ import {
   Plus, 
   Database,
   Printer,
-  Share2
+  Share2,
+  ShieldCheck,
+  LogOut,
+  Lock,
+  Cloud
 } from 'lucide-react';
 
 interface HeaderSidebarProps {
@@ -31,7 +36,14 @@ export function HeaderSidebar({ onOpenAddModal, onOpenShareModal }: HeaderSideba
     searchQuery, 
     setSearchQuery, 
     villageProfile,
-    stats 
+    stats,
+    isAdminLoggedIn,
+    adminCredentials,
+    logoutAdmin,
+    setIsAuthModalOpen,
+    requireAdmin,
+    isCloudSynced,
+    cloudStatusText
   } = useResidents();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -59,18 +71,15 @@ export function HeaderSidebar({ onOpenAddModal, onOpenShareModal }: HeaderSideba
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
           <div className="flex items-center space-x-2">
-            {villageProfile.logoKabupatenUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img 
-                src={villageProfile.logoKabupatenUrl} 
-                alt="Logo Kab" 
-                className="w-7 h-8 object-contain shrink-0"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-white border border-white/20">
-                W
-              </div>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={villageProfile.logoKabupatenUrl || DEFAULT_LOGO_KABUPATEN_SVG} 
+              alt="Logo Kabupaten" 
+              className="w-7 h-8 object-contain shrink-0"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = DEFAULT_LOGO_KABUPATEN_SVG;
+              }}
+            />
             <div>
               <h1 className="font-bold text-sm tracking-wide leading-tight">SIPENDUK</h1>
               <p className="text-xs text-emerald-200">Desa {villageProfile.namaDesa}</p>
@@ -79,17 +88,37 @@ export function HeaderSidebar({ onOpenAddModal, onOpenShareModal }: HeaderSideba
         </div>
 
         <div className="flex items-center space-x-2">
+          {isAdminLoggedIn ? (
+            <button
+              onClick={logoutAdmin}
+              className="flex items-center space-x-1 text-xs bg-rose-600/90 hover:bg-rose-600 text-white font-semibold px-2.5 py-1.5 rounded-lg transition shadow-xs"
+              title="Keluar dari mode Admin"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Keluar</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="flex items-center space-x-1 text-xs bg-emerald-700 hover:bg-emerald-600 text-white font-semibold px-2.5 py-1.5 rounded-lg border border-emerald-500/50 shadow-xs transition"
+              title="Login Admin untuk Edit/Input Data"
+            >
+              <Lock className="w-3.5 h-3.5 text-amber-300" />
+              <span className="hidden sm:inline">Login Admin</span>
+            </button>
+          )}
+
           <button
             onClick={onOpenShareModal}
             className="flex items-center space-x-1 text-xs bg-emerald-700 hover:bg-emerald-600 text-emerald-100 font-medium px-2.5 py-1.5 rounded-lg border border-emerald-600 shadow-xs transition"
             id="mobile-share-link-btn"
-            title="Bagikan / Salin Link Akses Web"
+            title="Perpendek & Bagikan Link Akses Web"
           >
             <Share2 className="w-3.5 h-3.5 text-emerald-300" />
-            <span className="hidden sm:inline">Salin Link</span>
+            <span className="hidden sm:inline">Perpendek Link</span>
           </button>
           <button
-            onClick={onOpenAddModal}
+            onClick={() => requireAdmin(onOpenAddModal)}
             className="flex items-center space-x-1 text-xs bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold px-3 py-1.5 rounded-lg shadow transition"
             id="mobile-add-resident-btn"
           >
@@ -118,26 +147,24 @@ export function HeaderSidebar({ onOpenAddModal, onOpenShareModal }: HeaderSideba
           {/* Sidebar Header */}
           <div className="p-4 bg-emerald-950/80 border-b border-emerald-800/50 flex items-center space-x-3">
             <div className="flex items-center space-x-1 shrink-0">
-              {villageProfile.logoKabupatenUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={villageProfile.logoKabupatenUrl} 
-                  alt="Logo Kabupaten" 
-                  className="w-8 h-10 object-contain drop-shadow"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow font-extrabold text-white text-lg">
-                  W
-                </div>
-              )}
-              {villageProfile.logoUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={villageProfile.logoUrl} 
-                  alt="Logo Desa" 
-                  className="w-7 h-9 object-contain drop-shadow"
-                />
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={villageProfile.logoKabupatenUrl || DEFAULT_LOGO_KABUPATEN_SVG} 
+                alt="Logo Kabupaten" 
+                className="w-8 h-10 object-contain drop-shadow"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = DEFAULT_LOGO_KABUPATEN_SVG;
+                }}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={villageProfile.logoUrl || DEFAULT_LOGO_DESA_SVG} 
+                alt="Logo Desa" 
+                className="w-7 h-9 object-contain drop-shadow"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = DEFAULT_LOGO_DESA_SVG;
+                }}
+              />
             </div>
             <div>
               <h2 className="font-bold text-base text-white tracking-wide">SIPENDUK</h2>
@@ -150,8 +177,10 @@ export function HeaderSidebar({ onOpenAddModal, onOpenShareModal }: HeaderSideba
           <div className="p-4 border-b border-slate-800">
             <button
               onClick={() => {
-                onOpenAddModal();
-                setMobileMenuOpen(false);
+                requireAdmin(() => {
+                  onOpenAddModal();
+                  setMobileMenuOpen(false);
+                });
               }}
               className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 px-4 rounded-xl shadow-md hover:shadow-emerald-600/30 transition text-sm"
               id="sidebar-add-resident-btn"
@@ -225,6 +254,46 @@ export function HeaderSidebar({ onOpenAddModal, onOpenShareModal }: HeaderSideba
 
         {/* Sidebar Footer */}
         <div className="p-4 border-t border-slate-800 bg-slate-950/40 text-xs text-slate-400 space-y-3">
+          {/* Admin Status Box */}
+          <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80">
+            {isAdminLoggedIn ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 text-emerald-400 font-bold text-[11px]">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Admin: {adminCredentials.username}</span>
+                  </div>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+                <button
+                  onClick={logoutAdmin}
+                  className="w-full flex items-center justify-center space-x-1.5 py-1.5 bg-rose-900/40 hover:bg-rose-900/70 border border-rose-700/50 text-rose-300 font-bold text-[10px] rounded-lg transition"
+                  id="sidebar-logout-btn"
+                >
+                  <LogOut className="w-3 h-3" />
+                  <span>Keluar Admin</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-amber-400 font-bold text-[11px] flex items-center space-x-1">
+                    <Lock className="w-3 h-3" />
+                    <span>Mode Lihat (Publik)</span>
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="w-full flex items-center justify-center space-x-1.5 py-1.5 bg-emerald-900/50 hover:bg-emerald-800/80 border border-emerald-700/60 text-emerald-300 font-bold text-[11px] rounded-lg transition"
+                  id="sidebar-login-btn"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Login Admin</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => {
               onOpenShareModal();
@@ -234,7 +303,7 @@ export function HeaderSidebar({ onOpenAddModal, onOpenShareModal }: HeaderSideba
             id="sidebar-share-link-btn"
           >
             <Share2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Akses / Bagikan Link App</span>
+            <span>Perpendek & Bagikan Link</span>
           </button>
 
           <div>
@@ -243,8 +312,11 @@ export function HeaderSidebar({ onOpenAddModal, onOpenShareModal }: HeaderSideba
               <span className="font-semibold text-slate-300">Kab. {villageProfile.kabupaten}</span>
             </div>
             <p className="text-[11px] text-slate-400">Kec. {villageProfile.kecamatan} • Kode Pos {villageProfile.kodePos}</p>
-            <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">
-              <span className="text-emerald-400 font-mono">v1.2 Online</span>
+            <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]" title={cloudStatusText}>
+              <span className="flex items-center space-x-1.5 font-medium text-emerald-400">
+                <Cloud className="w-3 h-3 text-emerald-400 animate-pulse" />
+                <span>{isCloudSynced ? 'Database Real-Time' : 'Offline Mode'}</span>
+              </span>
               <span className="text-slate-400">Thn {villageProfile.tahunPendataan}</span>
             </div>
           </div>

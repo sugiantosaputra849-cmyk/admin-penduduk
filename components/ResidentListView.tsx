@@ -46,7 +46,8 @@ export function ResidentListView({
     deleteResident, 
     searchQuery, 
     setSearchQuery, 
-    villageProfile 
+    villageProfile,
+    requireAdmin
   } = useResidents();
 
   // Filters
@@ -193,7 +194,7 @@ export function ResidentListView({
             <span>Export Excel</span>
           </button>
           <button
-            onClick={onOpenAddModal}
+            onClick={() => requireAdmin(onOpenAddModal)}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-600/30 flex items-center space-x-1.5 transition"
             id="add-resident-btn"
           >
@@ -406,7 +407,7 @@ export function ResidentListView({
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => onOpenEditModal(r)}
+                            onClick={() => requireAdmin(() => onOpenEditModal(r))}
                             className="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
                             title="Edit Data"
                             id={`edit-btn-${r.id}`}
@@ -422,7 +423,7 @@ export function ResidentListView({
                             <Printer className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setDeletingResident(r)}
+                            onClick={() => requireAdmin(() => setDeletingResident(r))}
                             className="p-1.5 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition"
                             title="Hapus Data"
                             id={`delete-btn-${r.id}`}

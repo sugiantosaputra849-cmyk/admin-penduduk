@@ -25,12 +25,20 @@ interface SettingsViewProps {
 }
 
 export function SettingsView({ onOpenShareModal }: SettingsViewProps) {
-  const { villageProfile, updateVillageProfile, resetDatabase } = useResidents();
+  const { 
+    villageProfile, 
+    updateVillageProfile, 
+    resetDatabase,
+    adminCredentials,
+    updateAdminCredentials,
+    requireAdmin
+  } = useResidents();
 
   const [formProfile, setFormProfile] = useState({ ...villageProfile });
-  const [adminUsername, setAdminUsername] = useState('admin_waihatu');
-  const [adminPassword, setAdminPassword] = useState('');
+  const [adminUsername, setAdminUsername] = useState(adminCredentials.username);
+  const [adminPassword, setAdminPassword] = useState(adminCredentials.password);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [adminSaveSuccess, setAdminSaveSuccess] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fieldKey: 'logoKabupatenUrl' | 'logoUrl') => {
@@ -53,9 +61,33 @@ export function SettingsView({ onOpenShareModal }: SettingsViewProps) {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    updateVillageProfile(formProfile);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    requireAdmin(() => {
+      const finalProfile = {
+        ...formProfile,
+        logoUrl: formProfile.logoUrl && formProfile.logoUrl.trim() !== '' ? formProfile.logoUrl : DEFAULT_LOGO_DESA_SVG,
+        logoKabupatenUrl: formProfile.logoKabupatenUrl && formProfile.logoKabupatenUrl.trim() !== '' ? formProfile.logoKabupatenUrl : DEFAULT_LOGO_KABUPATEN_SVG
+      };
+      updateVillageProfile(finalProfile);
+      setFormProfile(finalProfile);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    });
+  };
+
+  const handleSaveAdminCreds = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminUsername.trim() || !adminPassword) {
+      alert('Username dan Password tidak boleh kosong.');
+      return;
+    }
+    requireAdmin(() => {
+      updateAdminCredentials({
+        username: adminUsername.trim(),
+        password: adminPassword
+      });
+      setAdminSaveSuccess(true);
+      setTimeout(() => setAdminSaveSuccess(false), 3000);
+    });
   };
 
   return (
@@ -392,41 +424,62 @@ export function SettingsView({ onOpenShareModal }: SettingsViewProps) {
           </div>
 
           {/* Admin Credentials */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-4">
-            <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              <h3 className="font-extrabold text-slate-900 text-base">Akun Administrator</h3>
+          <form onSubmit={handleSaveAdminCreds} className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                <h3 className="font-extrabold text-slate-900 text-base">Akun Administrator</h3>
+              </div>
+              <span className="inline-block px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md font-bold text-[10px]">
+                Hak Akses Utama
+              </span>
             </div>
+
+            {adminSaveSuccess && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Username & Password Admin berhasil diperbarui dan disimpan!</span>
+              </div>
+            )}
 
             <div className="space-y-3 text-xs">
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Username Admin</label>
                 <input
                   type="text"
+                  required
                   value={adminUsername}
                   onChange={(e) => setAdminUsername(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                  id="settings-admin-username-input"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Ubah Password</label>
+                <label className="block font-semibold text-slate-700 mb-1">Password Admin</label>
                 <input
                   type="password"
-                  placeholder="Password Baru..."
+                  required
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                  placeholder="Masukkan password admin baru..."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                  id="settings-admin-password-input"
                 />
               </div>
 
-              <div className="pt-1">
-                <span className="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-md font-semibold text-[10px]">
-                  Hak Akses: Administrator Utama Desa
-                </span>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-2"
+                  id="save-admin-creds-btn"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Simpan Perubahan Admin</span>
+                </button>
               </div>
             </div>
-          </div>
+          </form>
 
           {/* Danger Zone / Reset */}
           <div className="bg-white rounded-2xl p-5 border border-rose-200 shadow-xs space-y-3">
@@ -439,7 +492,7 @@ export function SettingsView({ onOpenShareModal }: SettingsViewProps) {
             </p>
 
             <button
-              onClick={() => setShowResetConfirm(true)}
+              onClick={() => requireAdmin(() => setShowResetConfirm(true))}
               className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs rounded-xl transition"
               id="reset-db-btn"
             >

@@ -28,7 +28,7 @@ export function KartuKeluargaView({
   onPrintKk,
   onViewResidentDetail
 }: KartuKeluargaViewProps) {
-  const { kartuKeluargaList, villageProfile } = useResidents();
+  const { kartuKeluargaList, villageProfile, requireAdmin } = useResidents();
   const [searchKk, setSearchKk] = useState('');
   const [expandedKk, setExpandedKk] = useState<string | null>(null);
 
@@ -135,7 +135,7 @@ export function KartuKeluargaView({
                     </button>
 
                     <button
-                      onClick={() => onOpenAddMemberForKk(kk.noKk, kk.dusun, kk.alamat, kk.rt, kk.rw)}
+                      onClick={() => requireAdmin(() => onOpenAddMemberForKk(kk.noKk, kk.dusun, kk.alamat, kk.rt, kk.rw))}
                       className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-1 shadow-xs transition"
                       title="Tambah Anggota Keluarga"
                       id={`add-member-kk-btn-${kk.noKk}`}
